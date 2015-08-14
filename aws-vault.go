@@ -21,13 +21,14 @@ func main() {
 		ErrorWriter: os.Stderr,
 	}
 
-	// handle profile at the top level, I always do this.
-	var profile string
+	var (
+		profile string
+		debug   bool
+	)
 	flag.StringVar(&profile, "profile", command.ProfileFromEnv(), "")
 	flag.StringVar(&profile, "p", command.ProfileFromEnv(), "")
+	flag.BoolVar(&debug, "debug", debug, "")
 	flag.Parse()
-
-	// log.Printf("%s %#v",)
 
 	k := keyring.DefaultKeyring
 	c := cli.NewCLI("aws-vault", Version)
@@ -53,6 +54,7 @@ func main() {
 				Keyring:        k,
 				Env:            os.Environ(),
 				DefaultProfile: profile,
+				Debug:          debug,
 			}, nil
 		},
 		"ls": func() (cli.Command, error) {

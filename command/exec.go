@@ -21,9 +21,8 @@ const (
 
 // Executes a subcommand with credentials passed to it via the environment
 type ExecCommand struct {
-	Ui cli.Ui
-
-	// things passed in from main
+	Ui             cli.Ui
+	Debug          bool
 	Keyring        keyring.Keyring
 	MFASerial      string
 	Env            []string
@@ -71,8 +70,15 @@ func (c *ExecCommand) Run(args []string) int {
 		return 1
 	}
 
+	if c.Debug {
+		c.Ui.Info(fmt.Sprintf("loaded profile %s", profileName))
+	}
+
 	if !noMfa && profile.MFASerial != "" {
 		c.MFASerial = profile.MFASerial
+		if c.Debug {
+			c.Ui.Info(fmt.Sprintf("using mfa %s", profile.MFASerial))
+		}
 	}
 
 	env := append(c.Env, "AWS_DEFAULT_PROFILE="+profileName)
@@ -92,12 +98,18 @@ func (c *ExecCommand) Run(args []string) int {
 		// otherwise get fresh credentials
 		if sessionCreds == nil || refresh || time.Now().After(*sessionCreds.Expiration) {
 			if profile.RoleARN != "" {
+				if c.Debug {
+					c.Ui.Info(fmt.Sprintf("assuming role %s", profile.RoleARN))
+				}
 				sessionCreds, err = c.assumeRole(sourceProfile, profile.RoleARN, sessionDuration)
 				if err != nil {
 					c.Ui.Error(err.Error())
 					return 1
 				}
 			} else {
+				if c.Debug {
+					c.Ui.Info(fmt.Sprintf("establishing new session with duration=%s", sessionDuration.String()))
+				}
 				sessionCreds, err = c.session(sourceProfile, sessionDuration)
 				if err != nil {
 					c.Ui.Error(err.Error())
@@ -110,6 +122,10 @@ func (c *ExecCommand) Run(args []string) int {
 			if err != nil {
 				c.Ui.Error(err.Error())
 				return 1
+			}
+		} else {
+			if c.Debug {
+				c.Ui.Info(fmt.Sprintf("using cached session %#v", *sessionCreds))
 			}
 		}
 
