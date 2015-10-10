@@ -13,7 +13,7 @@ type AddCommandInput struct {
 	FromEnv bool
 }
 
-func AddCommand(ui Ui, input AddCommandInput) {
+func AddCommand(ui *Ui, input AddCommandInput) {
 	var accessKeyId, secretKey string
 
 	if input.FromEnv {
@@ -33,12 +33,17 @@ func AddCommand(ui Ui, input AddCommandInput) {
 		}
 	}
 
-	creds := credentials.Value{AccessKeyID: accessKeyId, SecretAccessKey: secretKey}
-	provider := &KeyringProvider{Keyring: input.Keyring, Profile: input.Profile}
-
-	if err := provider.Store(creds); err != nil {
+	if err := storeCredentials(input.Keyring, input.Profile, accessKeyId, secretKey); err != nil {
 		ui.Error.Fatal(err)
 	}
 
 	ui.Printf("Added credentials to profile %q in vault", input.Profile)
+}
+
+func storeCredentials(k keyring.Keyring, profile, accessKeyId, secretAccessKey string) error {
+	provider := &KeyringProvider{Keyring: k, Profile: profile}
+	return provider.Store(credentials.Value{
+		AccessKeyID:     accessKeyId,
+		SecretAccessKey: secretAccessKey,
+	})
 }

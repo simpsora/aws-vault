@@ -14,19 +14,6 @@ var (
 	Version string
 )
 
-type Ui struct {
-	*log.Logger
-	Error, Debug *log.Logger
-	Exit         func(code int)
-}
-
-type logWriter struct{ *log.Logger }
-
-func (w logWriter) Write(b []byte) (int, error) {
-	w.Printf("%s", b)
-	return len(b), nil
-}
-
 func main() {
 	var (
 		debug            = kingpin.Flag("debug", "Show debugging output").Bool()
@@ -50,7 +37,7 @@ func main() {
 	kingpin.CommandLine.Help =
 		`A vault for securely storing and accessing AWS credentials in development environments.`
 
-	ui := Ui{
+	ui := &Ui{
 		Logger: log.New(os.Stdout, "", 0),
 		Error:  log.New(os.Stderr, "", 0),
 		Debug:  log.New(ioutil.Discard, "", 0),

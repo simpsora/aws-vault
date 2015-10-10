@@ -17,7 +17,7 @@ type LoginCommandInput struct {
 	Keyring keyring.Keyring
 }
 
-func LoginCommand(ui Ui, input LoginCommandInput) {
+func LoginCommand(ui *Ui, input LoginCommandInput) {
 	provider, err := NewVaultProvider(input.Keyring, input.Profile, VaultOptions{
 		AssumeRoleDuration: MaxAssumeRoleDuration,
 	})

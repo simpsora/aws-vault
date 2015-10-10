@@ -11,7 +11,7 @@ type RemoveCommandInput struct {
 	Keyring keyring.Keyring
 }
 
-func RemoveCommand(ui Ui, input RemoveCommandInput) {
+func RemoveCommand(ui *Ui, input RemoveCommandInput) {
 	r, err := prompt(fmt.Sprintf("Delete credentials for profile %q? (Y|n)", input.Profile))
 	if err != nil {
 		ui.Error.Fatal(err)

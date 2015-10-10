@@ -27,13 +27,14 @@ type ExecCommandInput struct {
 	Signals  chan os.Signal
 }
 
-func ExecCommand(ui Ui, input ExecCommandInput) {
+func ExecCommand(ui *Ui, input ExecCommandInput) {
 	creds, err := NewVaultCredentials(input.Keyring, input.Profile, VaultOptions{
 		SessionDuration: input.Duration,
 		WriteEnv:        input.WriteEnv,
 	})
 	if err != nil {
 		ui.Error.Fatal(err)
+		return
 	}
 
 	val, err := creds.Get()
@@ -43,11 +44,13 @@ func ExecCommand(ui Ui, input ExecCommandInput) {
 		} else {
 			ui.Error.Fatal(err)
 		}
+		return
 	}
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		ui.Error.Fatal(err)
+		return
 	}
 
 	go func() {
@@ -58,6 +61,7 @@ func ExecCommand(ui Ui, input ExecCommandInput) {
 	cfg, err := profileConfig(input.Profile)
 	if err != nil {
 		ui.Error.Fatal(cfg)
+		return
 	}
 
 	env := os.Environ()
@@ -94,7 +98,7 @@ func ExecCommand(ui Ui, input ExecCommandInput) {
 		}
 		if exitError, ok := err.(*exec.ExitError); ok {
 			waitStatus = exitError.Sys().(syscall.WaitStatus)
-			os.Exit(waitStatus.ExitStatus())
+			ui.Exit(waitStatus.ExitStatus())
 		}
 	}
 

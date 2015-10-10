@@ -6,7 +6,7 @@ type LsCommandInput struct {
 	Keyring keyring.Keyring
 }
 
-func LsCommand(ui Ui, input LsCommandInput) {
+func LsCommand(ui *Ui, input LsCommandInput) {
 	accounts, err := input.Keyring.Keys()
 	if err != nil {
 		ui.Error.Fatal(err)
